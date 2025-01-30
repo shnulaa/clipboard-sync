@@ -1,7 +1,8 @@
-# 跨平台剪贴板同步：在不同设备和操作系统之间同步剪贴板内容。
+# 跨平台剪贴板同步
 
+在不同设备和操作系统之间同步剪贴板内容。
 
-# Server
+## Server
 
 Server是一个使用Flask框架和Socket.IO库的Python web应用，允许用户发送剪贴板内容到指定的设备（如智能电视）。主要功能包括：
 
@@ -10,40 +11,59 @@ Server是一个使用Flask框架和Socket.IO库的Python web应用，允许用�
 3. 提供`/send_clipboard`路由，允许用户通过POST请求发送剪贴板内容到指定设备。
 4. 使用Socket.IO处理设备连接、注册和断开连接事件，并更新设备列表。
 
-如需更详细的文档或说明，请参考项目的其他文档和代码。
+### 安装和运行
 
+请按照以下步骤安装和运行Server：
 
-# client
+1. 克隆仓库：
+   ```sh
+   git clone https://github.com/shnulaa/clipboard-sync.git
+   ```
 
-项目简介。
+2. 进入Server目录：
+   ```sh
+   cd clipboard-sync/server
+   ```
 
-## 功能
+3. 安装依赖：
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+4. 运行Server：
+   ```sh
+   python app.py
+   ```
+
+## Client
+
+Client是一个跨平台的应用程序，允许用户在不同设备和操作系统之间同步剪贴板内容。主要功能包括：
 
 - **跨平台剪贴板同步**：在不同设备和操作系统之间同步剪贴板内容。
 - **快速访问剪贴板历史**：通过一个界面快速访问和复制剪贴板历史记录。
 - **自定义快捷键**：为常用操作设置自定义快捷键，提高效率。
 
-## 安装
+### 安装和运行
 
-请按照以下步骤安装和运行项目：
+请按照以下步骤安装和运行Client：
 
 1. 克隆仓库：
-   ```
+   ```sh
    git clone https://github.com/shnulaa/clipboard-sync.git
    ```
 
-2. 进入项目目录：
-   ```
-   cd yourproject
+2. 进入Client目录：
+   ```sh
+   cd clipboard-sync/client
    ```
 
 3. 获取依赖：
-   ```
+   ```sh
    flutter pub get
    ```
 
-4. 运行项目：
-   ```
+4. 运行Client：
+   ```sh
    flutter run
    ```
 
