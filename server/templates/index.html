@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>剪贴板同步控制台</title>
+    <script src="/static/lib/socket.io/4.7.4/js/socket.io.min.js"></script>
+    <link href="/static/lib/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/lib/fontawesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --hover-color: #357abd;
+        }
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .online { background: #28a745; }
+        .device-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .device-card:hover {
+            transform: translateY(-5px);
+        }
+        #content {
+            min-height: 120px;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-paste me-2"></i>
+                剪贴板同步系统
+            </a>
+            <div class="text-white">
+                <i class="fas fa-signal me-2"></i>
+                在线设备: <span id="deviceCount">{{ tv_clients|length }}</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card device-card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-tv me-2"></i>设备控制面板</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="clipboardForm" onsubmit="return submitForm(event)">
+                            <div class="mb-3">
+                                <label for="content" class="form-label">发送内容</label>
+                                <textarea
+                                    id="content"
+                                    name="content"
+                                    class="form-control"
+                                    rows="4"
+                                    placeholder="输入要同步的文本内容..."
+                                ></textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="tv_id" class="form-label">选择目标设备</label>
+                                <select
+                                    name="tv_id"
+                                    id="tv_id"
+                                    class="form-select"
+                                >
+                                    {% for tv_id, tv_data in tv_clients.items() %}
+                                    <option value="{{ tv_id }}">
+                                        <span class="status-indicator online"></span>
+                                        {{ tv_data['name'] }} ({{ tv_id }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                发送到设备
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card device-card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>系统状态</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>当前版本: 1.2.0</span>
+                            <span>连接状态: <span class="text-success">● 已连接</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/lib/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="messageToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-check-circle me-2 text-success"></i>
+                <strong class="me-auto">系统提示</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let tv_clients = JSON.parse('{{ tv_clients|tojson|safe }}') || {};
+
+        function updateDeviceList(devices) {
+            const select = document.getElementById('tv_id');
+            select.innerHTML = '';
+            
+            for (const [tv_id, tv_data] of Object.entries(devices)) {
+                const option = document.createElement('option');
+                option.value = tv_id;
+                option.innerHTML = `
+                    <span class="status-indicator online"></span>
+                    ${tv_data.name} (${tv_id})
+                `;
+                select.appendChild(option);
+            }
+        }
+
+        socket.on('device_update', (data) => {
+            if (data.action === 'add') {
+                tv_clients[data.tv_id] = {name: data.tv_name || data.name};
+            } else if (data.action === 'remove') {
+                delete tv_clients[data.tv_id];
+            }
+            updateDeviceList(tv_clients);
+            
+            const statusElement = document.querySelector('#deviceCount');
+            statusElement.textContent = Object.keys(tv_clients).length;
+            
+            const toastBody = toastEl?.querySelector('.toast-body') || document.createElement('div');
+            const iconEl = toastEl.querySelector('.fa-check-circle');
+            if (iconEl) {
+                iconEl.className = `fas fa-${data.action === 'add' ? 'plus' : 'minus'}-circle me-2 text-${data.action === 'add' ? 'success' : 'danger'}`;
+            }
+            toastBody.textContent = data.action === 'add'
+                ? `设备已连接: ${data.tv_name} (${data.tv_id})`
+                : `设备已断开: ${data.tv_name || data.name} (${data.tv_id})`;
+            if (toast) toast.show();
+        });
+
+        socket.on('device_update', (data) => {
+            if (data.action === 'add') {
+                tv_clients[data.tv_id] = {name: data.tv_name};
+            } else if (data.action === 'remove') {
+                delete tv_clients[data.tv_id];
+            }
+            updateDeviceList(tv_clients);
+            
+            const statusElement = document.querySelector('#deviceCount');
+            statusElement.textContent = Object.keys(tv_clients).length;
+            
+            const toastBody = toastEl.querySelector('.toast-body');
+            const iconEl = toastEl.querySelector('.fa-check-circle');
+            if (iconEl) {
+                iconEl.className = `fas fa-${data.action === 'add' ? 'plus' : 'minus'}-circle me-2 text-${data.action === 'add' ? 'success' : 'danger'}`;
+            }
+            toastBody.textContent = data.action === 'add'
+                ? `设备已连接: ${data.tv_name} (${data.tv_id})`
+                : `设备已断开: ${data.tv_id}`;
+            toast.show();
+        });
+
+        let toast = null;
+        let toastEl = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            toastEl = document.getElementById('messageToast');
+            if (toastEl) {
+                toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            }
+        });
+
+        async function submitForm(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const response = await fetch('/send_clipboard', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            const toastBody = toastEl.querySelector('.toast-body');
+            
+            if (result.status === 'success') {
+                const successIcon = toastEl.querySelector('.fa-check-circle');
+                if (successIcon) {
+                    successIcon.className = 'fas fa-check-circle me-2 text-success';
+                }
+                toastBody.textContent = result.message;
+            } else {
+                const errorIcon = toastEl.querySelector('.fa-check-circle');
+                if (errorIcon) {
+                    errorIcon.className = 'fas fa-times-circle me-2 text-danger';
+                }
+                toastBody.textContent = result.message;
+            }
+            
+            toast.show();
+            return false;
+        }
+    </script>
+</body>
+</html>
