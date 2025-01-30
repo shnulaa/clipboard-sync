@@ -28,6 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String _deviceId = '';
   String _deviceName = '';
   final List<String> _messages = []; // 显示消息
+  final ScrollController _scrollController = ScrollController(); // 添加滚动控制器
 
   @override
   void initState() {
@@ -59,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     socket.on('clipboard_data', (data) {
       print('收到剪贴板数据：$data');
-      _addMessage('收到剪贴板数据：${data['content']}');
+      _addMessage('收到服务端数据：${data['content']}，已经同步到剪贴板');
       _setClipboardData(data['content']);
     });
 
@@ -73,12 +74,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _setClipboardData(String text) async {
     Clipboard.setData(ClipboardData(text: text));
-    _addMessage("已同步剪贴板：$text");
+    _addMessage("收到服务端数据：$text，已经同步到剪贴板");
   }
 
   void _addMessage(String message) {
     setState(() {
       _messages.add(message);
+    });
+    _scrollToBottom(); // 添加滚动到底部的方法调用
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -86,6 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     socket.disconnect();
     socket.dispose();
+    _scrollController.dispose(); // 释放滚动控制器
     super.dispose();
   }
 
@@ -101,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text('TV Device Name: $_deviceName'),
             Expanded(
                 child: ListView.builder(
+              controller: _scrollController, // 设置滚动控制器
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 return ListTile(title: Text(_messages[index]));
