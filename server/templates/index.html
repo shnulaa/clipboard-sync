@@ -17,6 +17,8 @@
         [data-theme="dark"] {
             --background-color: #121212;
             --text-color: #fff;
+            --table-background-color: #1e1e1e;
+            --table-text-color: #fff;
         }
         body {
             background-color: var(--background-color);
@@ -55,6 +57,13 @@
         [data-theme="dark"] .bg-white {
             background-color: #2c2c2c !important;
             color: #fff;
+        }
+        [data-theme="dark"] .table {
+            background-color: var(--table-background-color);
+            color: var(--table-text-color);
+        }
+        [data-theme="dark"] .table-striped tbody tr {
+            background-color: var(--table-background-color);
         }
     </style>
     <script>
@@ -145,6 +154,67 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="card device-card mt-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>发送日志
+                            <button class="btn btn-link float-end" type="button" data-bs-toggle="collapse" data-bs-target="#logCollapse" aria-expanded="false" aria-controls="logCollapse">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="logCollapse" class="collapse">
+                        <div class="card-body">
+                            <button class="btn btn-danger mb-3" onclick="clearLogs()">清空日志</button>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">序号</th>
+                                        <th scope="col">设备ID</th>
+                                        <th scope="col">设备名称</th>
+                                        <th scope="col">内容</th>
+                                        <th scope="col">时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logTableBody">
+                                    {% for log in logs %}
+                                    <tr>
+                                        <th scope="row">{{ loop.index }}</th>
+                                        <td>{{ log[0] }}</td>
+                                        <td>{{ log[1] }}</td>
+                                        <td>{{ log[2] }}</td>
+                                        <td>{{ log[3] }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center mt-3" id="pagination">
+                                    {% if page > 1 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="javascript:void(0);" onclick="fetchLogs({{ page - 1 }})" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% for p in range(1, total_pages + 1) %}
+                                    <li class="page-item {% if p == page %}active{% endif %}">
+                                        <a class="page-link" href="javascript:void(0);" onclick="fetchLogs({{ p }})">{{ p }}</a>
+                                    </li>
+                                    {% endfor %}
+                                    {% if page < total_pages %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="javascript:void(0);" onclick="fetchLogs({{ page + 1 }})" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -181,6 +251,52 @@
             }
         }
 
+        function updateLogs(logs) {
+            const tbody = document.querySelector('#logTableBody');
+            tbody.innerHTML = '';
+            logs.forEach((log, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <th scope="row">${index + 1}</th>
+                    <td>${log[0]}</td>
+                    <td>${log[1]}</td>
+                    <td>${log[2]}</td>
+                    <td>${log[3]}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updatePagination(page, total_pages) {
+            const pagination = document.querySelector('#pagination');
+            pagination.innerHTML = '';
+            if (page > 1) {
+                pagination.innerHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);" onclick="fetchLogs(${page - 1})" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                `;
+            }
+            for (let p = 1; p <= total_pages; p++) {
+                pagination.innerHTML += `
+                    <li class="page-item ${p === page ? 'active' : ''}">
+                        <a class="page-link" href="javascript:void(0);" onclick="fetchLogs(${p})">${p}</a>
+                    </li>
+                `;
+            }
+            if (page < total_pages) {
+                pagination.innerHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);" onclick="fetchLogs(${page + 1})" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
         socket.on('device_update', (data) => {
             if (data.action === 'add') {
                 tv_clients[data.tv_id] = {name: data.tv_name || data.name};
@@ -190,6 +306,11 @@
             updateDeviceList(tv_clients);
             updateDeviceCount();
             showToast(data);
+        });
+
+        socket.on('update_logs', (data) => {
+            updateLogs(data.logs);
+            updatePagination(data.page, data.total_pages);
         });
 
         function updateDeviceCount() {
@@ -246,6 +367,32 @@
             
             toast.show();
             return false;
+        }
+
+        async function clearLogs() {
+            const response = await fetch('/clear_logs', {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                updateLogs([]);
+            }
+
+            const toastBody = toastEl.querySelector('.toast-body');
+            const successIcon = toastEl.querySelector('.fa-check-circle');
+            if (successIcon) {
+                successIcon.className = 'fas fa-check-circle me-2 text-success';
+            }
+            toastBody.textContent = result.message;
+            toast.show();
+        }
+
+        async function fetchLogs(page) {
+            const response = await fetch(`/get_logs?page=${page}`);
+            const result = await response.json();
+            updateLogs(result.logs);
+            updatePagination(result.page, result.total_pages);
         }
     </script>
 </body>
