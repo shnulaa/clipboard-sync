@@ -27,7 +27,7 @@ jobs:
       - name: Build executable with PyInstaller
         run: |
           cd server
-          pyinstaller --onefile --windowed --hidden-import eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects app.py
+          pyinstaller --onefile --windowed --hidden-import eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=dns --hidden-import=eventlet.hubs.selects app.py
 
       - name: Verify the executable
         run: |
