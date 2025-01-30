@@ -1,39 +1,37 @@
-name: Python package
+# .github/workflows/build-and-package.yml
+name: Build and Package Flask App
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  build:
+  build-and-package:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-    - name: Install dependencies
-      run: |
-        cd server
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          cd server
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Package application
-      run: |
-        cd server
-        python app.py sdist bdist_wheel
+      - name: Build executable with PyInstaller
+        run: |
+          cd server
+          pyinstaller --onefile --windowed app.py
 
-    - name: Upload package
-      uses: actions/upload-artifact@v3
-      with:
-        name: python-package
-        path: server/dist/
+      - name: Verify the executable
+        run: |
+          cd server
+          ./dist/app &
+          sleep 5
+          curl http://localhost:5000

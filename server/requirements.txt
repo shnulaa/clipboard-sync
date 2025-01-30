@@ -2,3 +2,4 @@ flask>=2.0.0
 flask-socketio>=5.0.0
 python-dotenv>=0.19.0
 eventlet>=0.31.0
+pyinstaller==5.1.0
