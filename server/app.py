@@ -4,11 +4,8 @@ import eventlet
 import sqlite3
 import os
 
-# 设置 async_mode
-async_mode = 'eventlet'
-
 app = Flask(__name__)
-sio = socketio.Server(cors_allowed_origins='*', async_mode=async_mode)
+sio = socketio.Server(cors_allowed_origins='*', async_mode=None)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 
 # 初始化数据库
