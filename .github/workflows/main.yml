@@ -29,10 +29,11 @@ jobs:
 
     - name: Package application
       run: |
+        cd server
         python setup.py sdist bdist_wheel
 
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
         name: python-package
-        path: dist/
+        path: server/dist/
