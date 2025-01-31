@@ -35,6 +35,23 @@ Server是一个使用Flask框架和Socket.IO库的Python web应用，允许用�
    python app.py
    ```
 
+### 使用Docker运行
+最新的镜像shnulaa/clipboard:latest
+项目支持通过Docker运行，步骤如下：
+
+1. 构建Docker镜像：
+   ```sh
+   docker build -t clipboard-sync-server .
+   ```
+
+2. 运行Docker容器：
+   ```sh
+   docker run -d -p 5000:5000 clipboard-sync-server
+   ```
+
+3. 访问服务：
+   打开浏览器并访问 `http://localhost:5000`。
+
 ## Client
 
 Client是一个跨平台的应用程序，允许用户在不同设备和操作系统之间同步剪贴板内容。主要功能包括：
