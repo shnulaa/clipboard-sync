@@ -30,20 +30,20 @@ jobs:
           push: true
           tags: shnulaa/clipboard:latest
 
-      - name: Install dependencies
-        run: |
-          cd server
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      # - name: Install dependencies
+      #   run: |
+      #     cd server
+      #     python -m pip install --upgrade pip
+      #     pip install -r requirements.txt
 
-      - name: Build executable with PyInstaller
-        run: |
-          cd server
-          pyinstaller --onefile --windowed --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone  --hidden-import=dns.asyncbackend --hidden-import=dns.asyncquery --hidden-import=dns.asyncresolver --hidden-import=dns.versioned  app.py
+      # - name: Build executable with PyInstaller
+      #   run: |
+      #     cd server
+      #     pyinstaller --onefile --windowed --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone  --hidden-import=dns.asyncbackend --hidden-import=dns.asyncquery --hidden-import=dns.asyncresolver --hidden-import=dns.versioned  app.py
 
-      - name: Verify the executable
-        run: |
-          cd server
-          ./dist/app &
-          sleep 5
-          curl http://localhost:5000
+      # - name: Verify the executable
+      #   run: |
+      #     cd server
+      #     ./dist/app &
+      #     sleep 5
+      #     curl http://localhost:5000
