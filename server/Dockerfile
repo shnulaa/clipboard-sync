@@ -5,7 +5,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # 将当前目录的内容复制到容器的工作目录中
-COPY ./ .
+COPY ../server/ .
 
 # 安装依赖项
 RUN pip install --no-cache-dir -r requirements.txt
