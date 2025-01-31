@@ -64,8 +64,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.0.0-${{ github.run_number }}
-          release_name: Release v1.0.0-${{ github.run_number }}
+          tag_name: apk-v1.0.0-${{ github.run_number }}
+          release_name: Release-apk v1.0.0-${{ github.run_number }}
           draft: false
           prerelease: false
 
@@ -107,8 +107,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.0.0-${{ github.run_number }}
-          release_name: Release v1.0.0-${{ github.run_number }}
+          tag_name: win-v1.0.0-${{ github.run_number }}
+          release_name: Release-windows v1.0.0-${{ github.run_number }}
           draft: false
           prerelease: false
 
@@ -118,6 +118,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: client/build/windows/runner/Release/client.exe
+          asset_path: client/build/windows/runner/Release/clipboard.exe
           asset_name: client.exe
           asset_content_type: application/x-msdownload
