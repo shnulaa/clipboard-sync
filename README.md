@@ -16,35 +16,42 @@ Server是一个使用Flask框架和Socket.IO库的Python web应用，允许用�
 请按照以下步骤安装和运行Server：
 
 1. 克隆仓库：
+
    ```sh
    git clone https://github.com/shnulaa/clipboard-sync.git
    ```
 
 2. 进入Server目录：
+
    ```sh
    cd clipboard-sync/server
    ```
 
 3. 安装依赖：
+
    ```sh
    pip install -r requirements.txt
    ```
 
 4. 运行Server：
+
    ```sh
    python app.py
    ```
 
 ### 使用Docker运行
+
 最新的镜像shnulaa/clipboard:latest
 项目支持通过Docker运行，步骤如下：
 
 1. 构建Docker镜像：
+
    ```sh
    docker build -t clipboard-sync-server .
    ```
 
 2. 运行Docker容器：
+
    ```sh
    docker run -d -p 5000:5000 clipboard-sync-server
    ```
@@ -67,27 +74,32 @@ Client是一个跨平台的应用程序，允许用户在不同设备和操作�
 #### Android 平台
 
 1. 克隆仓库：
+
    ```sh
    git clone https://github.com/shnulaa/clipboard-sync.git
    ```
 
 2. 进入Client目录：
+
    ```sh
    cd clipboard-sync/client
    ```
 
 3. 获取依赖：
+
    ```sh
    flutter pub get
    ```
 
 4. 配置Android环境：
+
    ```sh
    flutter config --android-studio-dir=/path/to/android/studio
    flutter doctor -v
    ```
 
 5. 编译并运行：
+
    ```sh
    flutter build apk
    flutter install
@@ -96,21 +108,25 @@ Client是一个跨平台的应用程序，允许用户在不同设备和操作�
 #### iOS 平台
 
 1. 克隆仓库：
+
    ```sh
    git clone https://github.com/shnulaa/clipboard-sync.git
    ```
 
 2. 进入Client目录：
+
    ```sh
    cd clipboard-sync/client
    ```
 
 3. 获取依赖：
+
    ```sh
    flutter pub get
    ```
 
 4. 配置iOS环境：
+
    ```sh
    open ios/Runner.xcworkspace
    ```
@@ -120,21 +136,25 @@ Client是一个跨平台的应用程序，允许用户在不同设备和操作�
 #### Web 平台
 
 1. 克隆仓库：
+
    ```sh
    git clone https://github.com/shnulaa/clipboard-sync.git
    ```
 
 2. 进入Client目录：
+
    ```sh
    cd clipboard-sync/client
    ```
 
 3. 获取依赖：
+
    ```sh
    flutter pub get
    ```
 
 4. 编译并运行：
+
    ```sh
    flutter build web
    flutter run -d chrome
