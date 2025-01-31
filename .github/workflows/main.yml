@@ -44,9 +44,9 @@ jobs:
           distribution: 'adopt'
 
       - name: Install Flutter
-        run: |
-          git clone https://github.com/flutter/flutter.git -b stable client/flutter
-          echo "$(pwd)/client/flutter/bin" >> $GITHUB_PATH
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.4'
 
       - name: Install dependencies
         run: |
