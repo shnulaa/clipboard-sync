@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'dart:io'; // 提供 HttpClient、Directory 和 File
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart'; // 提供临时文件路径支持
+import 'package:android_intent_plus/android_intent.dart'; // 提供 Android Intent 支持
 
 void main() {
   runApp(MyApp());
@@ -64,6 +67,13 @@ class _MyHomePageState extends State<MyHomePage> {
       _setClipboardData(data['content']);
     });
 
+    // 监听 install_apk 事件
+    socket.on('install_apk', (data) async {
+      String fileName = data['file_name'];
+      List<int> fileData = List<int>.from(data['file_data']);
+      await _saveAndInstallApk(fileName, fileData);
+    });
+
     socket.onDisconnect((_) {
       print('TV客户端断开连接');
       _addMessage('TV客户端断开连接');
@@ -94,6 +104,29 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }
     });
+  }
+
+  // 保存并安装 APK
+  Future<void> _saveAndInstallApk(String fileName, List<int> fileData) async {
+    try {
+      // 保存 APK 到本地存储
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/$fileName');
+      await file.writeAsBytes(fileData);
+
+      // 使用 FileProvider 获取文件 URI
+      final fileUri = Uri.parse(file.path);
+      final intent = AndroidIntent(
+        action: 'android.intent.action.VIEW',
+        data: fileUri.toString(),
+        type: 'application/vnd.android.package-archive',
+        // flags: <int>[Intent.FLAG_GRANT_READ_URI_PERMISSION],
+      );
+      await intent.launch();
+      _addMessage('APK 已成功下载并开始安装');
+    } catch (e) {
+      _addMessage('APK 下载或安装失败: $e');
+    }
   }
 
   @override

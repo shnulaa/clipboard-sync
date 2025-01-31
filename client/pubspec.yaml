@@ -20,7 +20,8 @@ dependencies:
   uuid: ^3.0.7                # 生成唯一 ID
   http: ^1.1.0                # HTTP 请求（可选，用于扩展功能）
   socket_io_client: ^2.0.0
-  
+  path_provider: ^2.0.11      # 获取临时文件路径
+  android_intent_plus: ^2.0.0 # 触发 APK 安装
 
 # 开发依赖项
 dev_dependencies:
@@ -32,4 +33,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   # assets:
-  #   - assets/images/          # 静态资源目录（可选） 
+  #   - assets/images/          # 静态资源目录（可选）

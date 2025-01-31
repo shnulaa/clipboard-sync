@@ -4,6 +4,7 @@ import socketio
 import eventlet
 import sqlite3
 import os
+import requests
 
 # 设置 WebSocket 的异步模式为 eventlet
 async_mode = 'eventlet'
@@ -158,6 +159,57 @@ def clear_logs():
     sio.emit('update_logs', [])
     return {"status": "success", "message": "日志已清空"}, 200
 
+# 推送 APK 的 API 接口
+@app.route('/push_apk', methods=['POST'])
+def push_apk():
+    """
+    接收 APK 下载链接并推送到指定的电视客户端
+    - 验证下载链接有效性
+    - 下载 APK 到 /tmp 目录
+    - 推送 APK 到目标设备
+    - 安装完成后删除临时文件
+    """
+    data = request.get_json()
+    apk_url = data.get('apk_url')
+    tv_id = data.get('tv_id')
+
+    if not apk_url or not tv_id:
+        return {"status": "error", "message": "缺少必要的参数"}, 400
+
+    import re
+    if not re.match(r'^https?://[^\s]+$', apk_url):
+        return {"status": "error", "message": "无效的 APK 下载链接"}, 400
+
+    if tv_id not in tv_clients:
+        return {"status": "error", "message": "未找到指定设备"}, 404
+
+    from urllib.parse import urlparse
+
+    try:
+        # 下载 APK 文件
+        response = requests.get(apk_url, stream=True)
+        if response.status_code != 200:
+            return {"status": "error", "message": "无法下载 APK 文件"}, 500
+
+        # 提取文件名
+        parsed_url = urlparse(apk_url)
+        file_name = os.path.basename(parsed_url.path)
+        temp_path = f"/tmp/{file_name}"
+
+        with open(temp_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+        # 推送 APK 到目标设备
+        sio.emit('install_apk', {'file_path': temp_path}, to=tv_clients[tv_id]['sid'])
+
+        # 删除临时文件
+        os.remove(temp_path)
+
+        return {"status": "success", "message": "APK 已成功推送并安装"}, 200
+
+    except Exception as e:
+        return {"status": "error", "message": f"发生错误: {str(e)}"}, 500
 # Socket.IO 事件：客户端连接
 @sio.on('connect')
 def connect(sid, environ):
@@ -211,10 +263,25 @@ def disconnect(sid):
     
     conn.close()
 
+# Socket.IO 事件：安装 APK
+@sio.on('install_apk')
+def install_apk(sid, data):
+    """
+    处理 APK 安装请求
+    - 接收文件路径
+    - 触发安卓 TV 端安装逻辑
+    """
+    file_path = data.get('file_path')
+    if not file_path:
+        return {"status": "error", "message": "缺少文件路径"}, 400
+
+    # 模拟触发安卓 TV 端安装逻辑
+    print(f"Installing APK from path: {file_path}")
+    return {"status": "success", "message": "APK 安装请求已发送"}
 # 主程序入口
 if __name__ == '__main__':
     """
     启动应用程序
     - 使用eventlet WSGI服务器监听所有网络接口的5000端口
     """
-    eventlet.wsgi.server(eventlet.listen(('', 5000)), app)
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
